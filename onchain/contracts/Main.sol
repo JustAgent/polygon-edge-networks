@@ -71,6 +71,31 @@ contract Main is Ownable {
         _;
     }
 
+    event OrderCreated(
+        uint indexed orderId,
+        address indexed seller,
+        address indexed buyer,
+        address provider,
+        uint energyAmount,
+        uint pricePerUnit,
+        uint totalPrice,
+        uint deliveryDate,
+        Status status
+    );
+
+    event OrderStatusChanged(
+        uint indexed orderId,
+        Status oldStatus,
+        Status newStatus
+    );
+
+    event OrderSignatureChanged(
+        uint indexed orderId,
+        address signer,
+        bool signed,
+        Signs signType
+    );
+
     // The createOrder function allows a provider to create a new energy order
     function createOrder(
         address _seller,
@@ -96,7 +121,19 @@ contract Main is Ownable {
             Signs(false, false)
         );
         totalOrders += 1;
-        // event
+
+        // Emit the OrderCreated event
+        emit OrderCreated(
+            orderId,
+            _seller,
+            _buyer,
+            msg.sender,
+            _energyAmount,
+            _pricePerUnit,
+            totalPrice,
+            _deliveryDate,
+            Status.OnVerification
+        );
     }
 
     // The signOrder function allows the seller and buyer to sign the order
@@ -104,8 +141,6 @@ contract Main is Ownable {
         uint _orderId,
         uint8 side
     ) external isActiveAndExists(_orderId) {
-        // Check if the order ID is valid
-        require(_orderId <= totalOrders, "Invalid order Id");
         // Check if the order is currently waiting for signatures
         require(orders[_orderId].status == Status.OnVerification);
         // Check if the side parameter is valid
@@ -120,8 +155,9 @@ contract Main is Ownable {
                 order.buyer == msg.sender,
                 "Only the buyer can sign this order"
             );
-            // Set the buyerSign variable to true
             order.startSigns.buyerSign = true;
+            // Emit the OrderSignatureChanged event
+            emit OrderSignatureChanged(_orderId, msg.sender, true, order.startSigns);
         }
         // If the side is 1,the seller is signing the order
         if (side == 1) {
@@ -130,8 +166,10 @@ contract Main is Ownable {
                 order.seller == msg.sender,
                 "Only the seller can sign this order"
             );
-            // Set the sellerSign variable to true
             order.startSigns.sellerSign = true;
+
+            // Emit the OrderSignatureChanged event
+            emit OrderSignatureChanged(_orderId, msg.sender, true, order.startSigns);
         }
         // If both the seller and buyer have signed the order, set the status to Prepayment
         if (
@@ -139,7 +177,8 @@ contract Main is Ownable {
             order.startSigns.buyerSign == true
         ) {
             order.status = Status.Prepayment;
-            // event
+            // Emit the OrderStatusChanged event
+            emit OrderStatusChanged(_orderId, Status.OnVerification, Status.Prepayment);
         }
     }
 
@@ -155,11 +194,12 @@ contract Main is Ownable {
                 msg.sender == orders[_orderId].provider,
             "You are not the order participiant"
         );
+
+        emit OrderStatusChanged(_orderId, orders[_orderId].status, Status.Declined);
         orders[_orderId].status = Status.Declined;
 
-        // event
     }
-    
+
     // The payOrder function allows the buyer to pay for the order
     function payOrder(uint _orderId) external isActiveAndExists(_orderId) {
         require(orders[_orderId].buyer == msg.sender, "You are not the buyer");
@@ -169,26 +209,31 @@ contract Main is Ownable {
         BaseToken token = BaseToken(customerToBaseTokenAddress[msg.sender]);
         require(token.owner() == msg.sender, "Not the contract owner"); // change?
         // Transfer the total price of the order from the buyer's BaseToken contract to the seller's BaseToken contract
-        require(token.balanceOf(msg.sender) >= order.totalPrice, "Not enough balance");
+        require(
+            token.balanceOf(msg.sender) >= order.totalPrice,
+            "Not enough balance"
+        );
 
         uint balanceBefore = token.balanceOf(order.provider);
         require(
             token.transferFrom(msg.sender, order.provider, order.totalPrice),
             "Payment failed"
         );
-        
+
         uint balanceAfter = token.balanceOf(order.provider);
 
         require(
             balanceAfter == balanceBefore + order.totalPrice,
             "Something went wrong"
         );
+
+        // Emit the OrderStatusChanged event
+        emit OrderStatusChanged(_orderId, order.status, Status.InProcess);
         order.status = Status.InProcess;
-        // event
     }
 
-    // The fulfillOrder function allows the seller or the provider to mark an order as complete 
-    // and transfer the payment to the seller. 
+    // The fulfillOrder function allows the seller or the provider to mark an order as complete
+    // and transfer the payment to the seller.
     function fulfillOrder(uint _orderId) public isActiveAndExists(_orderId) {
         require(
             msg.sender == orders[_orderId].buyer ||
@@ -201,19 +246,31 @@ contract Main is Ownable {
         );
         if (msg.sender == orders[_orderId].buyer) {
             orders[_orderId].fulfillmentSigns.buyerSign = true;
+            // Emit the OrderSignatureChanged event
+            emit OrderSignatureChanged(_orderId, msg.sender, true, orders[_orderId].fulfillmentSigns);
         }
         if (msg.sender == orders[_orderId].seller) {
             orders[_orderId].fulfillmentSigns.sellerSign = true;
+            // Emit the OrderSignatureChanged event
+            emit OrderSignatureChanged(_orderId, msg.sender, true, orders[_orderId].fulfillmentSigns);
         }
         if (
             orders[_orderId].fulfillmentSigns.sellerSign == true &&
             orders[_orderId].fulfillmentSigns.buyerSign == true
         ) {
-            BaseToken token = BaseToken(customerToBaseTokenAddress[orders[_orderId].buyer]);
-            token.transferFrom(orders[_orderId].provider, orders[_orderId].seller, orders[_orderId].totalPrice);
+            BaseToken token = BaseToken(
+                customerToBaseTokenAddress[orders[_orderId].buyer]
+            );
+            token.transferFrom(
+                orders[_orderId].provider,
+                orders[_orderId].seller,
+                orders[_orderId].totalPrice
+            );
             orders[_orderId].status = Status.Fulfilled;
+            // Emit the OrderStatusChanged event
+            emit OrderStatusChanged(_orderId, Status.InProcess, Status.Fulfilled);
         }
-        //event
+        
     }
 
     // Verify that customer's token fits all requirements
@@ -239,7 +296,7 @@ contract Main is Ownable {
         providers[_provider] = true;
     }
 
-    // Delete provider 
+    // Delete provider
     function deleteProvider(address _provider) public onlyOwner {
         require(providers[_provider], "Not a provider");
         providers[_provider] = false;
