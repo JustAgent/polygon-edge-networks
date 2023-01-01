@@ -369,5 +369,3 @@ contract Main is Ownable {
     }
 }
 
-// Add func that provider can't spend tokens
-// Used energy
