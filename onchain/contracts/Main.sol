@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./BaseToken.sol";
 
 contract Main is ERC20, Ownable {
 
@@ -36,7 +37,8 @@ contract Main is ERC20, Ownable {
 
     mapping(uint256 => Order) public orders;
     mapping(address => bool) public providers;
-
+    mapping(address => address) public customerToBaseTokenAddress;
+    mapping(address => bool) public verifiedBaseToken;
     uint totalOrders;
 
     function createOrder(
@@ -63,10 +65,10 @@ contract Main is ERC20, Ownable {
         );
     }
 
-    function signOrder(uint orderId, uint8 side) external returns(bool) {
-        require(orderId <= totalOrders,"Invalid order ID");
+    function signOrder(uint _orderId, uint8 side) external returns(bool) {
+        require(_orderId <= totalOrders,"Invalid order ID");
         require(side == 0 || side == 1, "Select a correct side");
-        Order storage order = orders[orderId]; //debug
+        Order storage order = orders[_orderId]; //debug
 
         if (side == 0) {
             require(order.buyer == msg.sender,"Only the buyer can sign this order");
@@ -87,9 +89,36 @@ contract Main is ERC20, Ownable {
         return false;
     } 
 
-    function getOrder(uint orderId) public view returns (Order memory) {
-        return orders[orderId];
+    function pay(uint _orderId) external {
+        require(orders[_orderId].buyer == msg.sender, "You are not the buyer");
+        BaseToken token = BaseToken(customerToBaseTokenAddress[msg.sender]);
+        // ...
+    }
+
+
+    function verifyBaseToken(address _tokenAddress) external onlyOwner {
+        verifiedBaseToken[_tokenAddress] = true;
+    }
+
+    function deleteBaseToken(address _tokenAddress) external onlyOwner {
+        verifiedBaseToken[_tokenAddress] = false;
+    }
+
+    function setBaseToken(address _tokenAddress) external {
+        require(verifiedBaseToken[_tokenAddress] == true, "Unverified token");
+        uint len;
+        assembly { len := extcodesize(_tokenAddress) }
+        // Check that it's contract
+        require(len != 0); 
+        customerToBaseTokenAddress[msg.sender] = _tokenAddress;
+    }
+
+
+    function getOrder(uint _orderId) public view returns (Order memory) {
+        return orders[_orderId];
     }
 
 
 }
+
+// Also can add array of verified baseToken contracts

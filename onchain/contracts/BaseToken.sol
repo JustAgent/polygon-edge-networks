@@ -6,7 +6,7 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract Base is ERC20, Ownable{
+contract BaseToken is ERC20, Ownable{
 
 
     constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
