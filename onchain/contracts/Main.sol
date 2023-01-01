@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BaseToken.sol";
 
 contract Main is Ownable {
-
     struct Order {
         // uint256 orderId;
         address seller;
@@ -40,9 +39,9 @@ contract Main is Ownable {
     uint totalOrders;
 
     modifier isActiveAndExists(uint _orderId) {
-        require(orders[_orderId].status != Status.Declined, "Order declined");
-        require(orders[_orderId].status != Status.Fulfilled, "Order declined");
         require(_orderId <= totalOrders, "Doesn't exist");
+        require(orders[_orderId].status != Status.Declined, "Order declined");
+        require(orders[_orderId].status != Status.Fulfilled, "Order fulfilled");
         _;
     }
 
@@ -168,11 +167,29 @@ contract Main is Ownable {
     }
 
     function verifyBaseToken(address _tokenAddress) external onlyOwner {
+        require(!verifiedBaseToken[_tokenAddress]);
+        uint len;
+        assembly {
+            len := extcodesize(_tokenAddress)
+        }
+        // Check that it's contract
+        require(len != 0);
         verifiedBaseToken[_tokenAddress] = true;
     }
 
     function deleteBaseToken(address _tokenAddress) external onlyOwner {
+        require(verifiedBaseToken[_tokenAddress]);
         verifiedBaseToken[_tokenAddress] = false;
+    }
+
+    function addProvider(address _provider) public onlyOwner {
+        require(!providers[_provider], "Already a provider");
+        providers[_provider] = true;
+    }
+
+    function deleteProvider(address _provider) public onlyOwner {
+        require(providers[_provider], "Not a provider");
+        providers[_provider] = false;
     }
 
     function setBaseToken(address _tokenAddress) external {
@@ -182,7 +199,7 @@ contract Main is Ownable {
             len := extcodesize(_tokenAddress)
         }
         // Check that it's contract
-        require(len != 0);
+        require(len != 0, "Not a base token contract");
         customerToBaseTokenAddress[msg.sender] = _tokenAddress;
     }
 
