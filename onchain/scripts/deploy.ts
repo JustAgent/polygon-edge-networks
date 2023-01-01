@@ -1,12 +1,21 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const Lock = await ethers.getContractFactory("Lock");
-  // const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  const Main = await ethers.getContractFactory("Main");
+  const main = await Main.deploy();
+  await main.deployed();
 
-  // await lock.deployed();
+  // const B1 = await ethers.getContractFactory("BaseToken");
+  // const b1 = await B1.deploy(main.address);
+  // await b1.deployed();
 
-  // console.log(`Lock with 1 ETH deployed to ${lock.address}`);
+  // const B2 = await ethers.getContractFactory("BaseToken");
+  // const b2 = await B2.deploy(main.address);
+  // await b2.deployed();
+
+  // console.log(`Main deployed to ${main.address}`);
+  // console.log(`Token 1 deployed to ${b1.address}`);
+  // console.log(`Token 2 deployed to ${b2.address}`);
 }
 
 main().catch((error) => {
