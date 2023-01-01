@@ -16,6 +16,8 @@ contract Main is Ownable {
         address provider;
         // The energyAmount represents the amount of energy being sold
         uint256 energyAmount;
+        // The energyAmount represents the amount of energy being used
+        uint256 usedEnergyAmount;
         // The pricePerUnit represents the price per unit of energy
         uint256 pricePerUnit;
         // The totalPrice represents the total price of the order (energyAmount * pricePerUnit)
@@ -113,6 +115,7 @@ contract Main is Ownable {
             _buyer,
             msg.sender,
             _energyAmount,
+            0,
             _pricePerUnit,
             totalPrice,
             _deliveryDate,
@@ -157,7 +160,12 @@ contract Main is Ownable {
             );
             order.startSigns.buyerSign = true;
             // Emit the OrderSignatureChanged event
-            emit OrderSignatureChanged(_orderId, msg.sender, true, order.startSigns);
+            emit OrderSignatureChanged(
+                _orderId,
+                msg.sender,
+                true,
+                order.startSigns
+            );
         }
         // If the side is 1,the seller is signing the order
         if (side == 1) {
@@ -169,7 +177,12 @@ contract Main is Ownable {
             order.startSigns.sellerSign = true;
 
             // Emit the OrderSignatureChanged event
-            emit OrderSignatureChanged(_orderId, msg.sender, true, order.startSigns);
+            emit OrderSignatureChanged(
+                _orderId,
+                msg.sender,
+                true,
+                order.startSigns
+            );
         }
         // If both the seller and buyer have signed the order, set the status to Prepayment
         if (
@@ -178,7 +191,11 @@ contract Main is Ownable {
         ) {
             order.status = Status.Prepayment;
             // Emit the OrderStatusChanged event
-            emit OrderStatusChanged(_orderId, Status.OnVerification, Status.Prepayment);
+            emit OrderStatusChanged(
+                _orderId,
+                Status.OnVerification,
+                Status.Prepayment
+            );
         }
     }
 
@@ -195,9 +212,12 @@ contract Main is Ownable {
             "You are not the order participiant"
         );
 
-        emit OrderStatusChanged(_orderId, orders[_orderId].status, Status.Declined);
+        emit OrderStatusChanged(
+            _orderId,
+            orders[_orderId].status,
+            Status.Declined
+        );
         orders[_orderId].status = Status.Declined;
-
     }
 
     // The payOrder function allows the buyer to pay for the order
@@ -234,7 +254,10 @@ contract Main is Ownable {
 
     // The fulfillOrder function allows the seller or the provider to mark an order as complete
     // and transfer the payment to the seller.
-    function fulfillOrder(uint _orderId) public isActiveAndExists(_orderId) {
+    function fulfillOrder(
+        uint _orderId,
+        uint energyUsed
+    ) public isActiveAndExists(_orderId) {
         require(
             msg.sender == orders[_orderId].buyer ||
                 msg.sender == orders[_orderId].seller,
@@ -246,13 +269,24 @@ contract Main is Ownable {
         );
         if (msg.sender == orders[_orderId].buyer) {
             orders[_orderId].fulfillmentSigns.buyerSign = true;
+            orders[_orderId].usedEnergyAmount = energyUsed;
             // Emit the OrderSignatureChanged event
-            emit OrderSignatureChanged(_orderId, msg.sender, true, orders[_orderId].fulfillmentSigns);
+            emit OrderSignatureChanged(
+                _orderId,
+                msg.sender,
+                true,
+                orders[_orderId].fulfillmentSigns
+            );
         }
         if (msg.sender == orders[_orderId].seller) {
             orders[_orderId].fulfillmentSigns.sellerSign = true;
             // Emit the OrderSignatureChanged event
-            emit OrderSignatureChanged(_orderId, msg.sender, true, orders[_orderId].fulfillmentSigns);
+            emit OrderSignatureChanged(
+                _orderId,
+                msg.sender,
+                true,
+                orders[_orderId].fulfillmentSigns
+            );
         }
         if (
             orders[_orderId].fulfillmentSigns.sellerSign == true &&
@@ -261,16 +295,31 @@ contract Main is Ownable {
             BaseToken token = BaseToken(
                 customerToBaseTokenAddress[orders[_orderId].buyer]
             );
+            // Transfer to seller
+            uint totalForSeller = orders[_orderId].usedEnergyAmount *
+                orders[_orderId].pricePerUnit;
             token.transferFrom(
                 orders[_orderId].provider,
                 orders[_orderId].seller,
-                orders[_orderId].totalPrice
+                totalForSeller
+            );
+            // Transfer to buyer
+            uint totalForBuyer = orders[_orderId].totalPrice -
+                (orders[_orderId].usedEnergyAmount *
+                    orders[_orderId].pricePerUnit);
+            token.transferFrom(
+                orders[_orderId].provider,
+                orders[_orderId].buyer,
+                totalForBuyer
             );
             orders[_orderId].status = Status.Fulfilled;
             // Emit the OrderStatusChanged event
-            emit OrderStatusChanged(_orderId, Status.InProcess, Status.Fulfilled);
+            emit OrderStatusChanged(
+                _orderId,
+                Status.InProcess,
+                Status.Fulfilled
+            );
         }
-        
     }
 
     // Verify that customer's token fits all requirements
@@ -321,3 +370,4 @@ contract Main is Ownable {
 }
 
 // Add func that provider can't spend tokens
+// Used energy
