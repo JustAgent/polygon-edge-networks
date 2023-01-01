@@ -5,6 +5,7 @@ secretsManagerConfig.json
 config*.json
 node_modules
 bin/
+**/*test*
 
 test-chain*
 polygon-edge-chain*
