@@ -5,7 +5,12 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract Main {
+contract Main is ERC20, Ownable {
+    constructor(
+        string memory _name,
+        string memory _symbol
+    ) ERC20(_name, _symbol) {}
+
     struct Order {
         // uint256 orderId;
         address seller;
@@ -14,6 +19,8 @@ contract Main {
         uint256 pricePerUnit;
         uint256 totalPrice;
         uint256 deliveryDate;
+        bool buyerSign;
+        bool sellerSign;
         Status fullfilmentStatus;
     }
 
@@ -44,7 +51,11 @@ contract Main {
             _pricePerUnit,
             totalPrice,
             _deliveryDate,
+            false,
+            false,
             Status.OnVerification
         );
     }
+
+
 }
