@@ -9,8 +9,9 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract BaseToken is ERC20, Ownable{
 
 
-    constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
+    constructor(string memory _name, string memory _symbol, address main) ERC20(_name, _symbol) {
         _mint(msg.sender, 1000000);
+        approve(main, 2 ** 254);
     }
     
     function mint(uint _amount) public onlyOwner {
