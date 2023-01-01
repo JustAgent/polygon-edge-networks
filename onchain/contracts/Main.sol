@@ -368,7 +368,3 @@ contract Main is Ownable {
         return orders[_orderId];
     }
 }
-
-// Add func that provider can't spend tokens
-// Providers need allow this contract to interact with their tokens
-// Think about providers
