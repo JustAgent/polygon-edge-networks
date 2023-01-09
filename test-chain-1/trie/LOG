@@ -1,0 +1,26 @@
+=============== Dec 27, 2022 (MSK) ===============
+18:09:20.320640 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+18:09:20.381739 db@open opening
+18:09:20.383734 version@stat F·[] S·0B[] Sc·[]
+18:09:20.403072 db@janitor F·2 G·0
+18:09:20.403770 db@open done T·21.06875ms
+=============== Dec 27, 2022 (MSK) ===============
+18:13:04.663394 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+18:13:04.667020 version@stat F·[] S·0B[] Sc·[]
+18:13:04.667436 db@open opening
+18:13:04.667751 journal@recovery F·1
+18:13:04.668004 journal@recovery recovering @1
+18:13:04.689924 memdb@flush created L0@2 N·1 S·267B "\xf6\x85X..\x1d\xa1\xf2,v1":"\xf6\x85X..\x1d\xa1\xf2,v1"
+18:13:04.691109 version@stat F·[1] S·267B[267B] Sc·[0.25]
+18:13:04.767439 db@janitor F·3 G·0
+18:13:04.768266 db@open done T·100.047958ms
+=============== Jan 1, 2023 (MSK) ===============
+20:17:03.225143 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+20:17:03.229831 version@stat F·[1] S·267B[267B] Sc·[0.25]
+20:17:03.230257 db@open opening
+20:17:03.230743 journal@recovery F·1
+20:17:03.231529 journal@recovery recovering @3
+20:17:03.256491 memdb@flush created L0@5 N·26 S·13KiB "Fs\xdf..\xe87\xf5,v19":"\xfb\x9e\xae..`y\x92,v14"
+20:17:03.257075 version@stat F·[2] S·13KiB[13KiB] Sc·[0.50]
+20:17:03.335016 db@janitor F·4 G·0
+20:17:03.335376 db@open done T·104.804791ms
