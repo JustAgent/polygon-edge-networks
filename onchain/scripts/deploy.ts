@@ -5,17 +5,17 @@ async function main() {
   const main = await Main.deploy();
   await main.deployed();
 
-  // const B1 = await ethers.getContractFactory("BaseToken");
-  // const b1 = await B1.deploy(main.address);
-  // await b1.deployed();
+  const B1 = await ethers.getContractFactory("BaseToken");
+  const b1 = await B1.deploy("Name1", "Symbol1", main.address);
+  await b1.deployed();
 
-  // const B2 = await ethers.getContractFactory("BaseToken");
-  // const b2 = await B2.deploy(main.address);
-  // await b2.deployed();
+  const B2 = await ethers.getContractFactory("BaseToken");
+  const b2 = await B2.deploy("Name2", "Symbol2", main.address);
+  await b2.deployed();
 
-  // console.log(`Main deployed to ${main.address}`);
-  // console.log(`Token 1 deployed to ${b1.address}`);
-  // console.log(`Token 2 deployed to ${b2.address}`);
+  console.log(`Main deployed to ${main.address}`);
+  console.log(`Token 1 deployed to ${b1.address}`);
+  console.log(`Token 2 deployed to ${b2.address}`);
 }
 
 main().catch((error) => {
