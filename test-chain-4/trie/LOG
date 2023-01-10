@@ -17,3 +17,13 @@
 =============== Jan 4, 2023 (MSK) ===============
 00:41:28.286253 db@close closing
 00:41:28.286980 db@close done T·722.125µs
+=============== Jan 9, 2023 (MSK) ===============
+19:25:51.018845 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+19:25:51.023889 version@stat F·[1] S·7KiB[7KiB] Sc·[0.25]
+19:25:51.024331 db@open opening
+19:25:51.024680 journal@recovery F·1
+19:25:51.024802 journal@recovery recovering @3
+19:25:51.047177 memdb@flush created L0@5 N·2 S·422B "\xaf\x98\xb3..D\xb67,v21":"\xf6\x85X..\x1d\xa1\xf2,v20"
+19:25:51.047643 version@stat F·[2] S·7KiB[7KiB] Sc·[0.50]
+19:25:51.121639 db@janitor F·4 G·0
+19:25:51.122227 db@open done T·97.352583ms
