@@ -160,3 +160,13 @@
 12:41:27.860405 table@remove removed @39
 12:41:27.860487 table@remove removed @40
 12:43:03.175420 db@close closing
+=============== Jan 10, 2023 (MSK) ===============
+12:50:40.373029 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+12:50:40.373608 version@stat F·[0 10] S·18MiB[0B 18MiB] Sc·[0.00 0.19]
+12:50:40.373628 db@open opening
+12:50:40.373687 journal@recovery F·1
+12:50:40.373926 journal@recovery recovering @44
+12:50:40.380664 version@stat F·[0 10] S·18MiB[0B 18MiB] Sc·[0.00 0.19]
+12:50:40.454848 db@janitor F·13 G·1
+12:50:40.454861 db@janitor removing table-43
+12:50:40.454936 db@open done T·81.300959ms

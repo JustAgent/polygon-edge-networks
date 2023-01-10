@@ -1,31 +1,78 @@
+# How to use:
 
-![Banner](.github/banner.jpg)
-[![codecov](https://codecov.io/gh/0xPolygon/polygon-edge/branch/develop/graph/badge.svg?token=PXEADRC1IW)](https://codecov.io/gh/0xPolygon/polygon-edge)
-## Polygon Edge
+`git clone`
+`cd polygon-edge-networks`
 
-Polygon Edge is a modular and extensible framework for building Ethereum-compatible blockchain networks.
+## To start local blockchain write this 4 commands:
 
-To find out more about Polygon, visit the [official website](https://polygon.technology/).
+```
+polygon-edge server --data-dir ./test-chain-1 --chain genesis.json --grpc-address :10000 --libp2p :10001 --jsonrpc :10002 --seal
+polygon-edge server --data-dir ./test-chain-2 --chain genesis.json --grpc-address :20000 --libp2p :20001 --jsonrpc :20002 --seal
+polygon-edge server --data-dir ./test-chain-3 --chain genesis.json --grpc-address :30000 --libp2p :30001 --jsonrpc :30002 --seal
+polygon-edge server --data-dir ./test-chain-4 --chain genesis.json --grpc-address :40000 --libp2p :40001 --jsonrpc :40002 --seal
+```
 
-WARNING: This is a work in progress so architectural changes may happen in the future. The code has not been audited yet, so please contact [Polygon Edge team](mailto:edge@polygon.technology) if you would like to use it in production.
+### You can check http://localhost:10002/ to make sure it works
 
-## Documentation 📝
+### To work with contracts:
 
-If you'd like to learn more about the Polygon Edge, how it works and how you can use it for your project,
-please check out the **[Polygon Edge Documentation](https://docs.polygon.technology/docs/edge/overview/)**.
+```
+cd onchain
+npm i
+```
 
----
+### After installing all dependencies paste your private key in hardhat.config.ts
 
-Copyright 2022 Polygon Technology
+```javascript
+import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+const config: HardhatUserConfig = {
+  solidity: "0.8.17",
+  networks: {
+    local: {
+      url: "http://localhost:10002/",
+      accounts: ["0x12321321321..."], // Paste yout private key
+    },
+  },
+};
 
-       http://www.apache.org/licenses/LICENSE-2.0
+export default config;
+```
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+### If it done correctly you can now deploy contracts to our blockchain
+
+`npx hh run --network local scripts/deploy.ts`
+
+## Now setup is done and we can start working
+
+First of all, we have to set a provider (third party who creates orders)
+`addProvider(address _provider)`
+
+## Working with smartcontract
+
+Than provider can create an order
+`createOrder( address _seller, address _buyer, uint _energyAmount, uint _pricePerUnit, uint _deliveryDate )`
+
+To make order valid, seller and buyer must sign this order (side 0 for buyer, 1 for seller)
+` signOrder( uint _orderId, uint8 side )`
+
+Than buyer must prepay order. To do this he needs his token be verified by the contract owner
+`verifyBaseToken(address _tokenAddress)`
+This \_tokenAddress is "Token 1/2 deployed to ..."
+Actually it's just a simulation of real system because now we don't have the tokenomic
+
+Than buyer can set his token with which he will pay for order
+` setBaseToken(address _tokenAddress)`
+Keep in mind that now we doing all manipulations in this example within 1 EOA just to make it easier to understand
+
+Now buyer can prepay
+`payOrder(uint _orderId)`
+First \_orderId = 1
+
+Now our order is being executed in the real world
+
+To verify if it's done seller and buyer have to sign it again. Buyer can set used amount of energy to get part of money back
+` fulfillOrder( uint _orderId, uint energyUsed )`
+
+Now order is fulfilled. Also any side can decline offer on some stages if it doesn't agree with conditions.
